@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng Nhập - HRM System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* CSS Riêng cho trang đăng nhập có hiệu ứng */
+        body.login-page {
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Ẩn thanh cuộn */
+
+            /* ĐÃ CẬP NHẬT MÀU NỀN: Xanh da trời sáng, nhạt và tươi tắn hơn */
+            background: linear-gradient(135deg, #8cbcfc 0%, #4a8df6 100%);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Lớp Canvas để vẽ hiệu ứng giọt nước */
+        #particle-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Nằm dưới form đăng nhập */
+        }
+
+        /* Form đăng nhập hiệu ứng kính mờ (Glassmorphism) */
+        .auth-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px); /* Làm mờ nền phía sau form */
+            -webkit-backdrop-filter: blur(12px);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            z-index: 10; /* Nằm trên canvas */
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="login-page">
+
+<canvas id="particle-canvas"></canvas>
+
+<div class="auth-card">
+    <div class="text-center mb-4">
+        <i class="fas fa-layer-group" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+        <h2 style="color: var(--dark); font-weight: 700;">HỆ THỐNG HRM</h2>
+        <p style="color: var(--secondary); margin-top: 5px;">Vui lòng đăng nhập để tiếp tục</p>
+    </div>
+
+    <form id="loginForm">
+        <div class="form-group">
+            <label>Email đăng nhập</label>
+            <div style="position: relative;">
+                <i class="fas fa-envelope" style="position: absolute; left: 15px; top: 15px; color: #b7b9cc;"></i>
+                <input type="email" id="email" class="form-control" style="padding-left: 40px; background: rgba(255,255,255,0.9);" placeholder="admin@company.com" required>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+            <label>Mật khẩu</label>
+            <div style="position: relative;">
+                <i class="fas fa-lock" style="position: absolute; left: 15px; top: 15px; color: #b7b9cc;"></i>
+                <input type="password" id="password" class="form-control" style="padding-left: 40px; background: rgba(255,255,255,0.9);" placeholder="Nhập mật khẩu" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" id="loginBtn" style="justify-content: center; padding: 12px; font-size: 1rem; box-shadow: 0 4px 10px rgba(78, 115, 223, 0.4);">
+            ĐĂNG NHẬP
+        </button>
+    </form>
+</div>
+
+<script src="/js/api-client.js"></script>
+
+<script>
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    let particlesArray;
+
+    // Vị trí chuột
+    let mouse = {
+        x: null,
+        y: null,
+        radius: (canvas.height / 80) * (canvas.width / 80) // Bán kính lực hút
+    }
+
+    // Bắt sự kiện chuột
+    window.addEventListener('mousemove', function(event) {
+        mouse.x = event.x;
+        mouse.y = event.y;
+    });
+
+    window.addEventListener('mouseout', function() {
+        mouse.x = undefined;
+        mouse.y = undefined;
+    });
+
+    // Khởi tạo Giọt nước (Particle)
+    class Particle {
+        constructor(x, y, directionX, directionY, size, color) {
+            this.x = x;
+            this.y = y;
+            this.directionX = directionX;
+            this.directionY = directionY;
+            this.size = size;
+            this.color = color;
+        }
+        // Vẽ giọt nước
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+        }
+        // Tính toán di chuyển và tương tác chuột
+        update() {
+            // Kiểm tra va chạm viền màn hình để dội lại
+            if (this.x > canvas.width || this.x < 0) { this.directionX = -this.directionX; }
+            if (this.y > canvas.height || this.y < 0) { this.directionY = -this.directionY; }
+
+            // Tính toán khoảng cách giữa chuột và giọt nước
+            let dx = mouse.x - this.x;
+            let dy = mouse.y - this.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            // Lực hút: Nếu chuột ở gần, giọt nước từ từ hút về phía chuột
+            if (distance < mouse.radius + this.size) {
+                // Tốc độ di chuyển theo chuột (càng nhỏ càng mượt)
+                this.x += dx * 0.02;
+                this.y += dy * 0.02;
+            }
+
+            // Di chuyển tự nhiên
+            this.x += this.directionX;
+            this.y += this.directionY;
+            this.draw();
+        }
+    }
+
+    // Tạo mảng các giọt nước
+    function init() {
+        particlesArray = [];
+        let numberOfParticles = (canvas.height * canvas.width) / 9000;
+        for (let i = 0; i < numberOfParticles; i++) {
+            let size = (Math.random() * 3) + 1; // Kích thước ngẫu nhiên
+            let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+            let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+            let directionX = (Math.random() * 2) - 1; // Tốc độ trôi
+            let directionY = (Math.random() * 2) - 1;
+            let color = '#ffffff';
+
+            particlesArray.push(new Particle(x, y, directionX, directionY, size, color));
+        }
+    }
+
+    // Vẽ các đường nối giữa các giọt nước khi chúng ở gần nhau
+    function connect() {
+        let opacityValue = 1;
+        for (let a = 0; a < particlesArray.length; a++) {
+            for (let b = a; b < particlesArray.length; b++) {
+                let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                             + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                if (distance < (canvas.width / 7) * (canvas.height / 7)) {
+                    opacityValue = 1 - (distance / 20000);
+                    ctx.strokeStyle = 'rgba(255, 255, 255, ' + opacityValue + ')';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                    ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                    ctx.stroke();
+                }
+            }
+        }
+    }
+
+    // Vòng lặp Animation liên tục
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+        for (let i = 0; i < particlesArray.length; i++) {
+            particlesArray[i].update();
+        }
+        connect();
+    }
+
+    // Cập nhật lại kích thước canvas khi resize trình duyệt
+    window.addEventListener('resize', function() {
+        canvas.width = innerWidth;
+        canvas.height = innerHeight;
+        mouse.radius = ((canvas.height / 80) * (canvas.height / 80));
+        init();
+    });
+
+    // Bắt đầu
+    init();
+    animate();
+</script>
+
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('loginBtn');
+        const emailInput = document.getElementById('email').value.trim();
+
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+        btn.disabled = true;
+
+        try {
+            localStorage.setItem('user_email', emailInput);
+
+            const response = await ApiClient.post('/auth/login', {
+                email: emailInput,
+                password: document.getElementById('password').value
+            });
+
+            UI.toast("Đăng nhập thành công!", "success");
+
+            setTimeout(() => {
+                if (response.message.includes("Admin")) window.location.href = '/admin-dashboard.html';
+                else window.location.href = '/employee-dashboard.html';
+            }, 1000);
+
+        } catch (error) {
+            // Lỗi đã được API Client xử lý và hiện Toast
+        } finally {
+            btn.innerHTML = 'ĐĂNG NHẬP';
+            btn.disabled = false;
+        }
+    });
+</script>
+</body>
+</html>

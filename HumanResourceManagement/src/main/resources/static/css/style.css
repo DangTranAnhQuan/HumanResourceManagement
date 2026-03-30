@@ -1,0 +1,71 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+    --primary: #4e73df; --primary-hover: #2e59d9;
+    --success: #1cc88a; --danger: #e74a3b; --warning: #f6c23e;
+    --dark: #3a3b45; --secondary: #858796; --light: #f8f9fc;
+    --bg-main: #f4f7fe; --border: #e3e6f0;
+    --shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+    --radius: 10px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+body { background-color: var(--bg-main); color: var(--dark); font-size: 0.95rem; }
+
+/* ======== NỀN ĐĂNG NHẬP TUYỆT ĐẸP ======== */
+body.login-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex; align-items: center; justify-content: center; min-height: 100vh;
+}
+.auth-card {
+    background: rgba(255, 255, 255, 0.95); width: 100%; max-width: 420px;
+    padding: 40px 30px; border-radius: 15px; box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+}
+
+/* ======== GIAO DIỆN CHUNG ======== */
+.card { background: white; border-radius: var(--radius); box-shadow: var(--shadow); padding: 25px; border: 1px solid var(--border); margin-bottom: 25px; }
+.btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { transform: translateY(-2px); box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
+.btn-primary { background: var(--primary); color: white; }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+.w-100 { width: 100%; } .text-center { text-align: center; }
+
+/* ======== BẢNG BIỂU ======== */
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { padding: 15px; border-bottom: 1px solid var(--border); text-align: left; }
+th { background-color: var(--light); color: var(--secondary); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; }
+tbody tr:hover { background-color: #f1f3f9; }
+
+/* ======== BADGE TRẠNG THÁI ======== */
+.badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.badge-active, .badge-approved { background: #e3fbed; color: #1cc88a; }
+.badge-locked, .badge-rejected { background: #fdeaea; color: #e74a3b; }
+.badge-pending { background: #fef5d9; color: #f6c23e; }
+
+/* ======== FORM NHẬP LIỆU ======== */
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--dark); font-size: 0.9rem;}
+.form-control { width: 100%; padding: 12px 15px; border: 1px solid #d1d3e2; border-radius: 8px; font-size: 0.95rem; transition: 0.3s; background: #fafafa; }
+.form-control:focus { border-color: var(--primary); background: white; outline: none; box-shadow: 0 0 0 3px rgba(78, 115, 223, 0.2); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+/* ======== DASHBOARD LAYOUT ======== */
+.wrapper { display: flex; height: 100vh; overflow: hidden; }
+.sidebar { width: 260px; background: linear-gradient(180deg, #4e73df 10%, #224abe 100%); color: white; display: flex; flex-direction: column; }
+.sidebar-brand { padding: 25px 20px; font-size: 1.2rem; font-weight: 700; text-align: center; letter-spacing: 2px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px;}
+.menu-item { padding: 15px 25px; color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 500; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 15px; }
+.menu-item:hover, .menu-item.active { color: white; background: rgba(255,255,255,0.1); border-left: 4px solid white; }
+.main-content { flex: 1; padding: 30px 40px; overflow-y: auto; }
+.content-section { display: none; animation: fadeIn 0.4s; }
+.content-section.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ======== TOAST NOTIFICATION (BỎ ALERT) ======== */
+#toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+.custom-toast { background: white; padding: 16px 20px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); font-weight: 600; min-width: 280px; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s forwards; border-left: 5px solid; }
+.custom-toast.success { border-color: var(--success); color: #155724; }
+.custom-toast.error { border-color: var(--danger); color: #721c24; }
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes slideOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
