@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Tự phục vụ (Self-Service) HRM</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root { --p-color: #1cc88a; --s-color: #858796; --bg-color: #f8f9fc; --dark-card: #5a5c69; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; }
+        .wrapper { display: flex; min-height: 100vh; }
+
+        .sidebar { width: 230px; background: linear-gradient(180deg, var(--p-color) 10%, #13855c 100%); color: white; padding: 20px 10px; display: flex; flex-direction: column; transition: all 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-brand { font-size: 1.2rem; font-weight: 800; text-align: center; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item { color: rgba(255,255,255,0.8); padding: 12px 15px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; text-decoration: none; transition: 0.2s; font-size: 0.95rem; margin-bottom: 5px; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .menu-item.active { background-color: rgba(255,255,255,0.2); color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .menu-item i { width: 25px; font-size: 1.1rem; margin-right: 10px; text-align: center; }
+
+        .main-content { flex: 1; padding: 30px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 25px; border: 1px solid #e3e6f0; }
+        h2 { color: #3a3b45; font-weight: 700; margin-top: 0; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+        table thead th { background-color: #f8f9fc; color: #1cc88a; font-weight: 700; text-transform: uppercase; padding: 12px 10px; border-bottom: 2px solid #e3e6f0; text-align: left; }
+        table tbody td { padding: 12px 10px; border-bottom: 1px solid #e3e6f0; color: #6e707e; vertical-align: middle; }
+        table tbody tr:hover { background-color: #f1f4f9; }
+
+        .btn { padding: 8px 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .info-item { background: #f8f9fc; padding: 15px; border-radius: 8px; border-left: 4px solid var(--p-color); }
+        .info-item label { display: block; font-size: 0.75rem; color: #858796; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .info-item p { margin: 0; font-size: 1rem; font-weight: 600; color: #3a3b45; }
+
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .section-title { color: #1cc88a; font-weight: 700; margin-top: 25px; padding-bottom: 10px; border-bottom: 2px solid #eaecf4; margin-bottom: 20px; text-transform: uppercase; font-size: 0.9rem; }
+
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar">
+        <div class="sidebar-brand"><i class="fas fa-user-circle"></i> SELF-SERVICE</div>
+        <a class="menu-item active" onclick="switchTab('profile')"><i class="fas fa-id-card"></i> Hồ sơ cá nhân</a>
+        <a class="menu-item" onclick="switchTab('leave')"><i class="fas fa-plane-departure"></i> Xin nghỉ phép</a>
+        <a class="menu-item" onclick="switchTab('payslip')"><i class="fas fa-money-check-alt"></i> Bảng lương</a>
+        <div style="flex:1;"></div>
+        <a class="menu-item" style="background: rgba(0,0,0,0.1); margin-bottom: 20px;" onclick="ApiClient.clearAuth(); window.location.href='/index.html'"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <div id="profile" class="content-section active">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-id-card text-success"></i> Thông tin Hồ sơ gốc</h2>
+
+            <div class="card">
+                <div class="section-title" style="margin-top:0;">Thông tin Tổng quan & Công việc (Chỉ đọc)</div>
+                <div class="info-grid">
+                    <div class="info-item"><label>HỌ VÀ TÊN</label><p id="lblName">...</p></div>
+                    <div class="info-item"><label>PHÒNG BAN</label><p id="lblDept">...</p></div>
+                    <div class="info-item"><label>CHỨC VỤ & CẤP BẬC</label><p id="lblPos">...</p></div>
+                    <div class="info-item"><label>SỐ CCCD</label><p id="lblCCCD">...</p></div>
+                    <div class="info-item"><label>NGÀY SINH - GIỚI TÍNH</label><p id="lblDOBGender">...</p></div>
+                    <div class="info-item"><label>QUỸ PHÉP NĂM</label><p id="lblLeaveDays" class="text-success">...</p></div>
+                    <div class="info-item"><label>LOẠI HỢP ĐỒNG</label><p id="lblContract">...</p></div>
+                    <div class="info-item"><label>NGÀY VÀO LÀM</label><p id="lblJoinDate">...</p></div>
+                    <div class="info-item"><label>TRÌNH ĐỘ</label><p id="lblEdu">...</p></div>
+                </div>
+
+                <div class="section-title">Tài chính & Thuế (Chỉ đọc)</div>
+                <div class="info-grid" style="grid-template-columns: repeat(4, 1fr);">
+                    <div class="info-item"><label>TÀI KHOẢN NGÂN HÀNG</label><p id="lblBankAcc">...</p></div>
+                    <div class="info-item"><label>TÊN NGÂN HÀNG</label><p id="lblBankName">...</p></div>
+                    <div class="info-item"><label>MÃ SỐ THUẾ</label><p id="lblTax">...</p></div>
+                    <div class="info-item"><label>SỐ SỔ BHXH</label><p id="lblSocial">...</p></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="section-title" style="margin-top:0;">Cập nhật Thông tin Liên lạc cá nhân</div>
+                <form id="updForm" onsubmit="updProfile(event)">
+                    <div class="form-grid-2">
+                        <div class="form-group"><label>Số điện thoại cá nhân</label><input type="text" id="inpPhone" class="form-control" pattern="(0[3|5|7|8|9])+([0-9]{8})" maxlength="10" title="SĐT phải bắt đầu bằng số 0 và có đúng 10 chữ số" required></div>
+                        <div class="form-group"><label>Địa chỉ hiện tại</label><input type="text" id="inpAddress" class="form-control" required></div>
+                        <div class="form-group"><label>Tên người liên hệ khẩn cấp</label><input type="text" id="inpEmerName" class="form-control" placeholder="Tên người thân"></div>
+                        <div class="form-group"><label>SĐT khẩn cấp</label><input type="text" id="inpEmerPhone" class="form-control" pattern="(0[3|5|7|8|9])+([0-9]{8})" maxlength="10" title="SĐT phải bắt đầu bằng số 0 và có đúng 10 chữ số" placeholder="Số điện thoại người thân"></div>
+                    </div>
+                    <div style="text-align: right; margin-top: 15px;">
+                        <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Lưu cập nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="leave" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-plane-departure text-success"></i> Quản lý Nghỉ phép</h2>
+            <div class="card mb-4">
+                <h3 style="margin-top:0; margin-bottom: 15px; color:#1cc88a;">Tạo đơn xin nghỉ mới</h3>
+                <form id="leaveForm" class="form-grid-2" onsubmit="reqLeave(event)">
+                    <div class="form-group"><label>Loại phép</label><select id="lType" class="form-control"><option>Nghỉ phép năm</option><option>Nghỉ ốm</option><option>Nghỉ không lương</option></select></div>
+                    <div class="form-group"><label>Lý do nghỉ (Ghi rõ ràng)</label><input type="text" id="lReason" class="form-control" required></div>
+                    <div class="form-group"><label>Từ ngày</label><input type="date" id="lStart" class="form-control" required></div>
+                    <div class="form-group"><label>Đến ngày</label><input type="date" id="lEnd" class="form-control" required></div>
+                    <div style="grid-column: span 2; text-align: center;">
+                        <button type="submit" class="btn btn-success" style="padding: 10px 40px;"><i class="fas fa-paper-plane"></i> Gửi đơn xét duyệt</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0; margin-bottom: 15px;">Lịch sử đơn từ của bạn</h3>
+                <table id="lTable">
+                    <thead><tr><th>Loại phép</th><th>Thời gian</th><th>Lý do</th><th>Phản hồi từ Admin</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="payslip" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-money-check-alt text-success"></i> Lịch sử nhận lương</h2>
+            <div class="card">
+                <table id="pTable">
+                    <thead><tr><th>Kỳ Lương</th><th>Ngày công</th><th>Lương Cơ Bản</th><th>Phụ cấp</th><th>Khấu trừ (BHXH)</th><th>THỰC LÃNH (NET)</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/api-client.js"></script>
+<script>
+    const fmt = (n) => n ? new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(n) : '0 ₫';
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
+
+        if(tabId === 'profile') loadProf();
+        if(tabId === 'leave') loadLvs();
+        if(tabId === 'payslip') loadPays();
+    }
+
+    async function loadProf() {
+        try {
+            const p = await ApiClient.get('/employee/profile');
+
+            document.getElementById('lblName').innerText = p.fullName || 'Chưa cập nhật';
+            document.getElementById('lblDept').innerText = p.department ? p.department.departmentName : 'Chưa phân bổ';
+            document.getElementById('lblPos').innerText = p.position ? p.position.positionName : 'Chưa thiết lập';
+            document.getElementById('lblCCCD').innerText = p.cccd || '---';
+            let dob = p.dateOfBirth ? p.dateOfBirth : '---';
+            let gender = p.gender ? p.gender : '---';
+            document.getElementById('lblDOBGender').innerText = `${dob} (${gender})`;
+            document.getElementById('lblLeaveDays').innerText = (p.remainingLeaveDays || 0) + " ngày";
+            document.getElementById('lblContract').innerText = p.contractType || 'Chưa ký';
+            document.getElementById('lblJoinDate').innerText = p.joinDate || '---';
+            document.getElementById('lblEdu').innerText = p.educationLevel || '---';
+            document.getElementById('lblBankAcc').innerText = p.bankAccount || '---';
+            document.getElementById('lblBankName').innerText = p.bankName || '---';
+            document.getElementById('lblTax').innerText = p.taxCode || '---';
+            document.getElementById('lblSocial').innerText = p.socialInsuranceNumber || '---';
+
+            document.getElementById('inpPhone').value = p.phoneNumber || '';
+            document.getElementById('inpAddress').value = p.currentAddress || '';
+            document.getElementById('inpEmerName').value = p.emergencyContactName || '';
+            document.getElementById('inpEmerPhone').value = p.emergencyContactPhone || '';
+        } catch(e){}
+    }
+
+    async function updProfile(e) {
+        e.preventDefault();
+        try {
+            await ApiClient.put('/employee/profile', {
+                phoneNumber: document.getElementById('inpPhone').value,
+                currentAddress: document.getElementById('inpAddress').value,
+                emergencyContactName: document.getElementById('inpEmerName').value,
+                emergencyContactPhone: document.getElementById('inpEmerPhone').value
+            });
+            UI.toast('Đã lưu thông tin liên lạc thành công', 'success');
+        } catch(e){}
+    }
+
+    // --- LEAVES ---
+    async function reqLeave(e) {
+        e.preventDefault();
+
+        // KIỂM TRA LOGIC NGÀY BẰNG JS
+        let sDate = document.getElementById('lStart').value;
+        let eDate = document.getElementById('lEnd').value;
+        if(new Date(sDate) > new Date(eDate)) {
+            UI.toast("Lỗi: Ngày kết thúc không thể diễn ra trước ngày bắt đầu!", "error");
+            return;
+        }
+
+        try {
+            await ApiClient.post('/employee/leave-requests', {
+                leaveType: document.getElementById('lType').value,
+                startDate: sDate,
+                endDate: eDate,
+                reason: document.getElementById('lReason').value
+            });
+            UI.toast('Đã gửi đơn chờ HR duyệt', 'success');
+            document.getElementById('leaveForm').reset();
+            loadLvs(); loadProf();
+        } catch(e){}
+    }
+
+    async function loadLvs() {
+        try {
+            const h = await ApiClient.get('/employee/leave-history');
+            const tb = document.querySelector('#lTable tbody'); tb.innerHTML='';
+            h.forEach(r => {
+                let bdg = r.status === 'Đã duyệt' ? 'badge-approved' : (r.status === 'Chờ duyệt' ? 'badge-pending' : 'badge-rejected');
+                let btn = r.status==='Chờ duyệt' ? `<button class="btn btn-danger btn-sm" onclick="cancelLv(${r.requestID})"><i class="fas fa-trash"></i> Hủy</button>`:'';
+                let rejectText = r.rejectReason ? `<span style="color:var(--danger); font-size:0.85rem;"><i class="fas fa-comment-dots"></i> ${r.rejectReason}</span>` : '<span style="color:#aaa; font-style:italic;">Chưa có</span>';
+
+                tb.innerHTML += `<tr>
+                    <td><strong>${r.leaveType}</strong></td>
+                    <td>${r.startDate} <br><small>đến</small><br> ${r.endDate}</td>
+                    <td>${r.reason}</td>
+                    <td>${rejectText}</td>
+                    <td><span class="badge ${bdg}">${r.status}</span></td>
+                    <td>${btn}</td>
+                </tr>`;
+            });
+        } catch(e){}
+    }
+
+    async function cancelLv(id) {
+        if(await UI.confirm("Hủy đơn", "Bạn có chắc chắn muốn rút lại đơn xin nghỉ này?")) {
+            try { await ApiClient.put(`/employee/leave-requests/${id}/cancel`,{}); UI.toast('Đã hủy đơn','success'); loadLvs(); } catch(e){}
+        }
+    }
+
+    // --- PAYROLLS ---
+    async function loadPays() {
+        try {
+            let ps = await ApiClient.get('/employee/payslips');
+            ps.sort((a, b) => {
+                let [monthA, yearA] = a.monthYear.split('/');
+                let [monthB, yearB] = b.monthYear.split('/');
+                return new Date(yearB, monthB - 1) - new Date(yearA, monthA - 1);
+            });
+
+            const tb = document.querySelector('#pTable tbody'); tb.innerHTML='';
+            ps.forEach(p => {
+                tb.innerHTML += `<tr>
+                    <td><strong style="font-size:1.05rem;">${p.monthYear}</strong></td>
+                    <td>${p.actualWorkingDays}</td>
+                    <td>${fmt(p.basicSalary)}</td>
+                    <td>+ ${fmt(p.totalAllowance)}</td>
+                    <td style="color:var(--danger);">- ${fmt(p.totalDeduction)}</td>
+                    <td class="text-success" style="font-weight:bold; font-size:1.1rem;">${fmt(p.netSalary)}</td>
+                </tr>`;
+            });
+        } catch(e){}
+    }
+
+    window.onload = loadProf;
+</script>
+</body>
+</html>
