@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Quản trị Nhân sự HRM Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        :root { --p-color: #4e73df; --s-color: #858796; --bg-color: #f8f9fc; --dark-card: #5a5c69; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-color); margin: 0; }
+        .wrapper { display: flex; min-height: 100vh; }
+
+        .sidebar { width: 230px; background: linear-gradient(180deg, var(--p-color) 10%, #224abe 100%); color: white; padding: 20px 10px; display: flex; flex-direction: column; transition: all 0.3s; box-shadow: 2px 0 10px rgba(0,0,0,0.1); }
+        .sidebar-brand { font-size: 1.3rem; font-weight: 800; text-align: center; padding-bottom: 25px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+        .menu-item { color: rgba(255,255,255,0.8); padding: 12px 15px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; text-decoration: none; transition: 0.2s; font-size: 0.95rem; margin-bottom: 5px; }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .menu-item.active { background-color: rgba(255,255,255,0.2); color: white; font-weight: 600; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .menu-item i { width: 25px; font-size: 1.1rem; margin-right: 10px; text-align: center; }
+
+        .main-content { flex: 1; padding: 30px; }
+        .content-section { display: none; }
+        .content-section.active { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 25px; margin-bottom: 25px; border: 1px solid #e3e6f0; }
+        h2 { color: #3a3b45; font-weight: 700; margin-top: 0; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+        table thead th { background-color: #f8f9fc; color: #4e73df; font-weight: 700; text-transform: uppercase; padding: 12px 10px; border-bottom: 2px solid #e3e6f0; text-align: left; }
+        table tbody td { padding: 12px 10px; border-bottom: 1px solid #e3e6f0; color: #6e707e; vertical-align: middle; }
+        table tbody tr:hover { background-color: #f1f4f9; }
+
+        .btn { padding: 8px 16px; border-radius: 5px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .btn:hover { opacity: 0.85; transform: translateY(-1px); }
+        .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+        .btn-info { background: #36b9cc; color: white; }
+
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); }
+        .modal-content { background-color: white; margin: 5vh auto; padding: 30px; border-radius: 12px; width: 80%; max-width: 900px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideIn 0.3s; position: relative; max-height: 90vh; overflow-y: auto; }
+        @keyframes slideIn { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .close-modal { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; color: #aaa; cursor: pointer; }
+        .close-modal:hover { color: #333; }
+
+        .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-section-title { grid-column: span 3; color: #4e73df; font-weight: 700; margin-top: 15px; padding-bottom: 5px; border-bottom: 2px solid #eaecf4; margin-bottom: 10px; text-transform: uppercase; font-size: 0.85rem; }
+
+        .tab-detail-container { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
+        .tab-detail-btn { padding: 10px 20px; cursor: pointer; background: #f8f9fc; border: 1px solid #ddd; border-bottom: none; margin-right: 5px; border-radius: 5px 5px 0 0; color: #555; }
+        .tab-detail-btn.active { background: white; font-weight: bold; color: #4e73df; position: relative; top: 1px; }
+        .tab-detail-content { display: none; }
+        .tab-detail-content.active { display: block; }
+
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="sidebar">
+        <div class="sidebar-brand"><i class="fas fa-crown" style="color:#f6c23e;"></i> HRM PRO</div>
+        <a class="menu-item active" onclick="switchTab('dashboard')"><i class="fas fa-chart-pie"></i> Tổng quan</a>
+        <a class="menu-item" onclick="switchTab('positions')"><i class="fas fa-briefcase"></i> Chức vụ</a>
+        <a class="menu-item" onclick="switchTab('org')"><i class="fas fa-sitemap"></i> Phòng ban</a>
+        <a class="menu-item" onclick="switchTab('employees')"><i class="fas fa-users"></i> Hồ sơ nhân sự</a>
+        <a class="menu-item" onclick="switchTab('leaves')"><i class="fas fa-calendar-check"></i> Duyệt phép</a>
+        <a class="menu-item" onclick="switchTab('payroll')"><i class="fas fa-file-invoice-dollar"></i> Tính lương</a>
+        <a class="menu-item" onclick="switchTab('logs')"><i class="fas fa-history"></i> Nhật ký HT</a>
+        <div style="flex:1;"></div>
+        <a class="menu-item" style="background: rgba(231,74,59,0.2); color: #ffd4d4; margin-bottom: 20px;" onclick="ApiClient.clearAuth(); window.location.href='/index.html'"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+    </div>
+
+    <div class="main-content">
+        <div id="dashboard" class="content-section active">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-chart-pie text-primary"></i> Bảng điều khiển</h2>
+            <div class="grid-2" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 30px; gap:20px;">
+                <div class="card" style="border-left: 5px solid var(--primary); padding:15px; margin-bottom:0;"><div style="color:var(--secondary); font-size:0.75rem; font-weight:700;">TỔNG NHÂN SỰ</div><h2 id="db-emp" style="font-size:2rem; margin:10px 0 0 0;">0</h2></div>
+                <div class="card" style="border-left: 5px solid var(--success); padding:15px; margin-bottom:0;"><div style="color:var(--secondary); font-size:0.75rem; font-weight:700;">PHÒNG BAN</div><h2 id="db-dept" style="font-size:2rem; margin:10px 0 0 0;">0</h2></div>
+                <div class="card" style="border-left: 5px solid var(--warning); padding:15px; margin-bottom:0;"><div style="color:var(--secondary); font-size:0.75rem; font-weight:700;">ĐƠN CHỜ DUYỆT</div><h2 id="db-leave" style="font-size:2rem; margin:10px 0 0 0;">0</h2></div>
+                <div class="card" style="border-left: 5px solid var(--danger); padding:15px; margin-bottom:0;"><div style="color:var(--secondary); font-size:0.75rem; font-weight:700;">TK BỊ KHÓA</div><h2 id="db-locked" style="font-size:2rem; margin:10px 0 0 0;">0</h2></div>
+            </div>
+            <div class="card" style="text-align: center; padding: 60px 20px;">
+                <i class="fas fa-laptop-house" style="font-size: 5rem; color: var(--primary); margin-bottom: 20px; opacity: 0.3;"></i>
+                <h3 style="color: var(--dark); font-size: 1.5rem; margin-bottom: 10px;">Trung tâm Quản trị HRM</h3>
+            </div>
+        </div>
+
+
+        <div id="positions" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-briefcase text-primary"></i> Quản lý Chức vụ</h2>
+            <div class="card mb-4">
+                <form id="posForm" class="form-grid-3" onsubmit="createPos(event)">
+                    <div class="form-group"><label>Tên chức vụ</label><input type="text" id="posName" class="form-control" required></div>
+                    <div class="form-group"><label>Cấp bậc (Level)</label><input type="text" id="posGrade" class="form-control"></div>
+                    <div class="form-group"><label>Mô tả công việc</label><input type="text" id="posDesc" class="form-control"></div>
+                    <div style="grid-column: span 3; display: flex; justify-content: center;"><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm mới</button></div>
+                </form>
+            </div>
+            <div class="card">
+                <table id="posTable"><thead><tr><th>ID</th><th>Chức vụ</th><th>Cấp bậc</th><th>Mô tả</th><th>Thao tác</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <div id="org" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-sitemap text-primary"></i> Quản lý phòng ban</h2>
+            <div class="card mb-4">
+                <form id="deptForm" class="form-grid-2" onsubmit="createDept(event)">
+                    <div class="form-group"><label>Tên phòng ban</label><input type="text" id="deptName" class="form-control" required></div>
+                    <div class="form-group"><label>Vị trí văn phòng</label><input type="text" id="deptLoc" class="form-control"></div>
+                    <div class="form-group"><label>Số điện thoại nội bộ</label><input type="text" id="deptPhone" class="form-control" pattern="(0[3|5|7|8|9])+([0-9]{8})" maxlength="10" title="SĐT phải có 10 chữ số và bắt đầu bằng số 0"></div>
+                    <div class="form-group"><label>Mô tả</label><input type="text" id="deptDesc" class="form-control"></div>
+                    <div style="grid-column: span 2; display: flex; justify-content: center;"><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm mới</button></div>
+                </form>
+            </div>
+            <div class="card">
+                <table id="deptTable"><thead><tr><th>ID</th><th>Tên Phòng</th><th>Vị trí</th><th>SĐT</th><th>Thao tác</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <div id="employees" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-users text-primary"></i> Quản lý Hồ sơ Nhân sự</h2>
+            <div class="card mb-4">
+                <h3 style="margin-top:0; color:#4e73df; font-size: 1.1rem;"><i class="fas fa-user-plus"></i> Cấp tài khoản mới</h3>
+                <form id="empForm" class="form-grid-3" onsubmit="createEmp(event)">
+                    <div class="form-group"><label>Họ và tên</label><input type="text" id="empName" class="form-control" required></div>
+                    <div class="form-group"><label>Email công ty</label><input type="email" id="empEmail" class="form-control" required></div>
+
+                    <div class="form-group"><label>Số CCCD</label><input type="text" id="empCCCD" class="form-control" pattern="\d{12}" maxlength="12" title="CCCD phải bao gồm đúng 12 chữ số" required></div>
+
+                    <div class="form-group"><label>Phòng ban</label><select id="empDept" class="form-control" required></select></div>
+                    <div class="form-group"><label>Chức vụ</label><select id="empPosSelect" class="form-control"></select></div>
+                    <div class="form-group"><label>Quyền hệ thống</label><select id="empRole" class="form-control"><option value="2">Nhân viên</option><option value="1">Quản trị viên</option></select></div>
+                    <div style="grid-column: span 3; display: flex; justify-content: center;"><button type="submit" class="btn btn-success btn-sm"><i class="fas fa-check"></i> Tạo tài khoản</button></div>
+                </form>
+            </div>
+            <div class="card">
+                <table id="empTable"><thead><tr><th>ID</th><th>Họ Tên</th><th>Liên hệ</th><th>Vị trí</th><th>Quyền</th><th>Thao tác</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <div id="leaves" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-calendar-check text-primary"></i> Đơn xin nghỉ phép</h2>
+            <div class="card">
+                <table id="leaveTableAdmin"><thead><tr><th>Nhân viên</th><th>Loại phép</th><th>Thời gian</th><th>Lý do</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+
+        <div id="payroll" class="content-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2><i class="fas fa-file-invoice-dollar text-primary"></i> Quản lý Tiền lương</h2>
+                <button class="btn btn-warning" onclick="autoRunPayrollScript()" style="color: #333; font-weight: bold; font-size: 1.05rem; padding: 10px 20px;"><i class="fas fa-robot"></i> Chốt lương toàn công ty</button>
+            </div>
+            <div class="card mb-4" style="background: #fdfdfd; border: 1px dashed #ccc;">
+                <h4 style="margin-top:0;">Tính lương cá nhân</h4>
+                <form id="payrollForm" class="grid-2" onsubmit="processPayroll(event)">
+                    <div class="form-group"><label>Nhân viên</label><select id="payEmpId" class="form-control" required></select></div>
+                    <div class="form-group"><label>Kỳ lương</label><input type="text" id="payMonth" class="form-control" placeholder="03/2026" required></div>
+
+                    <div class="form-group"><label>Ngày công chuẩn</label><input type="number" id="payStd" class="form-control" value="26" min="1" max="31" required></div>
+                    <div class="form-group"><label>Thực tế làm</label><input type="number" step="0.5" id="payAct" class="form-control" min="0" max="31" required></div>
+
+                    <div style="grid-column: span 2; text-align:center;"><button type="submit" class="btn btn-primary btn-sm">Chốt lương</button></div>
+                </form>
+            </div>
+            <div class="card">
+                <table id="adminPayslipTable"><thead><tr><th>Kỳ</th><th>Nhân viên</th><th>Công</th><th>Lương CB</th><th>Phụ Cấp</th><th>Khấu trừ</th><th>NET thực lĩnh</th></tr></thead><tbody></tbody></table>
+            </div>
+        </div>
+
+        <div id="logs" class="content-section">
+            <h2 style="margin-bottom: 25px;"><i class="fas fa-history text-primary"></i> Nhật ký hệ thống</h2>
+            <div class="card"><table id="logTable"><thead><tr><th>Thời gian</th><th>Tài khoản</th><th>Hành động</th></tr></thead><tbody></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<div id="editDeptModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" onclick="closeModal('editDeptModal')">&times;</span>
+        <h2 style="color:var(--p-color); margin-bottom:20px;"><i class="fas fa-edit"></i> Cập nhật Phòng ban</h2>
+        <form id="formEditDept" class="form-grid-2" onsubmit="submitEditDept(event)">
+            <input type="hidden" id="editDeptId">
+            <div class="form-group" style="grid-column: span 2;"><label>Tên phòng ban</label><input type="text" id="editDeptName" class="form-control" required></div>
+            <div class="form-group"><label>Vị trí</label><input type="text" id="editDeptLoc" class="form-control"></div>
+            <div class="form-group"><label>SĐT nội bộ</label><input type="text" id="editDeptPhone" class="form-control" pattern="(0[3|5|7|8|9])+([0-9]{8})" maxlength="10" title="SĐT phải có 10 chữ số"></div>
+            <div class="form-group" style="grid-column: span 2;"><label>Mô tả</label><input type="text" id="editDeptDesc" class="form-control"></div>
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Trạng thái</label>
+                <select id="editDeptStatus" class="form-control">
+                    <option value="Đang hoạt động">Đang hoạt động</option>
+                    <option value="Tạm ngưng">Tạm ngưng</option>
+                </select>
+            </div>
+            <div style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editDeptModal')">Hủy</button>
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<div id="editPosModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <span class="close-modal" onclick="closeModal('editPosModal')">&times;</span>
+        <h2 style="color:var(--p-color); margin-bottom:20px;"><i class="fas fa-edit"></i> Cập nhật Chức vụ</h2>
+        <form id="formEditPos" class="form-grid-2" onsubmit="submitEditPos(event)">
+            <input type="hidden" id="editPosId">
+            <div class="form-group" style="grid-column: span 2;"><label>Tên chức vụ</label><input type="text" id="editPosName" class="form-control" required></div>
+            <div class="form-group"><label>Cấp bậc</label><input type="text" id="editPosGrade" class="form-control"></div>
+            <div class="form-group"><label>Trạng thái</label>
+                <select id="editPosStatus" class="form-control">
+                    <option value="Đang hoạt động">Đang hoạt động</option>
+                    <option value="Ngừng sử dụng">Ngừng sử dụng</option>
+                </select>
+            </div>
+            <div class="form-group" style="grid-column: span 2;"><label>Mô tả</label><input type="text" id="editPosDesc" class="form-control"></div>
+            <div style="grid-column: span 2; display: flex; justify-content: flex-end; gap: 10px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editPosModal')">Hủy</button>
+                <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="empDetailModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal('empDetailModal')">&times;</span>
+        <h2 style="color:var(--p-color); margin-bottom:10px;"><i class="fas fa-user-edit"></i> Hồ sơ nhân viên chi tiết</h2>
+        <div class="tab-detail-container">
+            <div class="tab-detail-btn active" onclick="switchDetailTab(event, 'detail-personal')">Cá nhân & Liên hệ</div>
+            <div class="tab-detail-btn" onclick="switchDetailTab(event, 'detail-work')">Hợp đồng & Công việc</div>
+            <div class="tab-detail-btn" onclick="switchDetailTab(event, 'detail-bank')">Tài khoản & Pháp lý</div>
+        </div>
+        <form id="empDetailForm" onsubmit="saveEmployeeDetail(event)">
+            <input type="hidden" id="detEmpId">
+            <div id="detail-personal" class="tab-detail-content active form-grid-3">
+                <div class="form-group"><label>Họ và tên</label><input type="text" id="detFullName" class="form-control" required></div>
+                <div class="form-group"><label>Giới tính</label><select id="detGender" class="form-control"><option>Nam</option><option>Nữ</option><option>Khác</option></select></div>
+                <div class="form-group"><label>Ngày sinh</label><input type="date" id="detBirthDate" class="form-control"></div>
+
+                <div class="form-group"><label>Số CCCD</label><input type="text" id="detCCCD" class="form-control" pattern="\d{12}" maxlength="12" title="CCCD gồm đúng 12 số" readonly style="background:#eee;"></div>
+                <div class="form-group"><label>Số điện thoại</label><input type="text" id="detPhone" class="form-control" pattern="(0[3|5|7|8|9])+([0-9]{8})" maxlength="10" title="SĐT phải bắt đầu bằng số 0 và có 10 chữ số"></div>
+
+                <div class="form-group"><label>Địa chỉ thường trú</label><input type="text" id="detAddress" class="form-control"></div>
+                <div class="form-section-title">Người liên hệ khẩn cấp</div>
+                <div class="form-group"><label>Họ tên người thân</label><input type="text" id="detEmergencyName" class="form-control"></div>
+
+                <div class="form-group"><label>Số điện thoại</label><input type="text" id="detEmergencyPhone" class="form-control" pattern="(0[3|5|7|8|9])+([0-9]{8})" maxlength="10" title="SĐT phải bắt đầu bằng số 0 và có 10 chữ số"></div>
+            </div>
+            <div id="detail-work" class="tab-detail-content form-grid-3">
+                <div class="form-group"><label>Phòng ban</label><select id="detDept" class="form-control" required></select></div>
+                <div class="form-group"><label>Chức vụ</label><select id="detPosSelect" class="form-control"></select></div>
+                <div class="form-group"><label>Trình độ học vấn</label><input type="text" id="detQualification" class="form-control"></div>
+                <div class="form-group"><label>Loại hợp đồng</label><select id="detContractType" class="form-control"><option>Thử việc</option><option>Chính thức 1 năm</option><option>Chính thức 3 năm</option><option>Vô thời hạn</option></select></div>
+                <div class="form-group"><label>Ngày bắt đầu làm</label><input type="date" id="detHireDate" class="form-control"></div>
+                <div class="form-group"><label>Quỹ phép năm</label><input type="number" id="detLeaveAllowance" class="form-control" min="0"></div>
+            </div>
+            <div id="detail-bank" class="tab-detail-content form-grid-2">
+                <div class="form-group"><label>Số tài khoản</label><input type="text" id="detBankAcc" class="form-control" pattern="[0-9]+" title="Số tài khoản chỉ chứa số"></div>
+                <div class="form-group"><label>Ngân hàng</label><input type="text" id="detBankName" class="form-control"></div>
+                <div class="form-group"><label>Mã số thuế</label><input type="text" id="detTaxId" class="form-control"></div>
+                <div class="form-group"><label>Số sổ BHXH</label><input type="text" id="detSocialId" class="form-control"></div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('empDetailModal')">Đóng</button>
+                <button type="submit" class="btn btn-success">Lưu hồ sơ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="payrollConfigModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <span class="close-modal" onclick="closeModal('payrollConfigModal')">&times;</span>
+        <h2 style="color:var(--danger);"><i class="fas fa-money-bill-wave"></i> Cài đặt Lương Cơ Bản</h2>
+        <p style="margin-bottom:20px; color:var(--s-color);">Thiết lập cho nhân viên: <strong id="configEmpName"></strong></p>
+        <form id="payrollConfigForm" class="form-grid-2" onsubmit="savePayrollConfig(event)">
+            <input type="hidden" id="configEmpId">
+            <div class="form-group" style="grid-column: span 2;"><label>Lương cơ bản (VNĐ)</label><input type="number" id="cfgBasicSalary" class="form-control" min="0" required style="font-size:1.1rem; color:var(--p-color); font-weight:bold;"></div>
+            <div class="form-group"><label>Phụ cấp ăn trưa</label><input type="number" id="cfgLunch" class="form-control" min="0" value="0"></div>
+            <div class="form-group"><label>Phụ cấp xăng xe</label><input type="number" id="cfgTravel" class="form-control" min="0" value="0"></div>
+            <div class="form-group"><label>Tỷ lệ đóng BHXH (%)</label><input type="number" step="0.1" id="cfgInsRate" class="form-control" min="0" max="100" value="10.5"></div>
+            <div style="grid-column: span 2; text-align:right;"><button type="submit" class="btn btn-danger">Lưu cấu hình</button></div>
+        </form>
+    </div>
+</div>
+
+<script src="/js/api-client.js"></script>
+<script>
+    const fmt = (n) => n ? new Intl.NumberFormat('vi-VN', {style:'currency', currency:'VND'}).format(n) : '0 ₫';
+
+    let globalDepts = [];
+    let globalPositions = [];
+
+    function switchTab(tabId) {
+        document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        if(event) event.currentTarget.classList.add('active');
+
+        if(tabId === 'dashboard') loadStats();
+        if(tabId === 'positions') loadPositions();
+        if(tabId === 'org') loadDepts();
+        if(tabId === 'employees') { loadEmps(); loadSharedData(); }
+        if(tabId === 'leaves') loadLeaves();
+        if(tabId === 'payroll') { loadEmpsForPay(); loadAllPayslips(); }
+        if(tabId === 'logs') loadLogs();
+    }
+
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    function switchDetailTab(evt, tabContentId) {
+        document.querySelectorAll('.tab-detail-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-detail-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabContentId).classList.add('active');
+        evt.currentTarget.classList.add('active');
+    }
+
+    async function loadSharedData() {
+        try {
+            globalDepts = await ApiClient.get('/admin/departments');
+            globalPositions = await ApiClient.get('/admin/positions');
+            const fill = (id, data, valKey, txtKey, def) => {
+                const el = document.getElementById(id); el.innerHTML = `<option value="">-- ${def} --</option>`;
+                data.forEach(d => { if(d.status!=='Khóa') el.innerHTML += `<option value="${d[valKey]}">${d[txtKey]}</option>`; });
+            };
+            fill('empDept', globalDepts, 'departmentID', 'departmentName', 'Chọn phòng');
+            fill('detDept', globalDepts, 'departmentID', 'departmentName', 'Chọn phòng');
+            fill('empPosSelect', globalPositions, 'positionID', 'positionName', 'Chọn chức vụ');
+            fill('detPosSelect', globalPositions, 'positionID', 'positionName', 'Chọn chức vụ');
+        } catch(e){}
+    }
+
+    async function loadStats() {
+        try {
+            const [emps, depts, leaves] = await Promise.all([ApiClient.get('/admin/employees-management'), ApiClient.get('/admin/departments'), ApiClient.get('/admin/leave-requests')]);
+            document.getElementById('db-emp').innerText = emps.length; document.getElementById('db-dept').innerText = depts.length;
+            document.getElementById('db-leave').innerText = leaves.filter(l => l.status === 'Chờ duyệt').length; document.getElementById('db-locked').innerText = emps.filter(e => e.user.status === 'Khóa').length;
+        } catch(e){}
+    }
+
+    // --- POSITIONS ---
+    async function loadPositions() {
+        try {
+            globalPositions = await ApiClient.get('/admin/positions');
+            const tb = document.querySelector('#posTable tbody'); tb.innerHTML='';
+            globalPositions.forEach(p => {
+                tb.innerHTML += `<tr>
+                    <td>${p.positionID}</td>
+                    <td><strong>${p.positionName}</strong><br><small style="color:#aaa;">${p.status||''}</small></td>
+                    <td>${p.jobLevel||''}</td>
+                    <td>${p.description||''}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="openEditPos(${p.positionID})"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-danger btn-sm" onclick="ApiClient.delete('/admin/positions/${p.positionID}').then(()=>{UI.toast('Đã xóa', 'success'); loadPositions();})"><i class="fas fa-trash"></i> Xóa</button>
+                    </td>
+                </tr>`;
+            });
+        } catch(e){}
+    }
+    async function createPos(e) { e.preventDefault(); try { await ApiClient.post('/admin/positions', {positionName: document.getElementById('posName').value, jobLevel: document.getElementById('posGrade').value, description: document.getElementById('posDesc').value, status: 'Đang hoạt động'}); UI.toast('Đã thêm', 'success'); document.getElementById('posForm').reset(); loadPositions(); } catch(e){} }
+
+    function openEditPos(id) {
+        let p = globalPositions.find(x => x.positionID === id);
+        if(p) {
+            document.getElementById('editPosId').value = p.positionID;
+            document.getElementById('editPosName').value = p.positionName;
+            document.getElementById('editPosGrade').value = p.jobLevel || '';
+            document.getElementById('editPosDesc').value = p.description || '';
+            document.getElementById('editPosStatus').value = p.status || 'Đang hoạt động';
+            openModal('editPosModal');
+        }
+    }
+    async function submitEditPos(e) {
+        e.preventDefault();
+        try {
+            await ApiClient.put(`/admin/positions/${document.getElementById('editPosId').value}`, { positionName: document.getElementById('editPosName').value, jobLevel: document.getElementById('editPosGrade').value, description: document.getElementById('editPosDesc').value, status: document.getElementById('editPosStatus').value });
+            UI.toast('Cập nhật chức vụ thành công', 'success'); closeModal('editPosModal'); loadPositions(); loadSharedData();
+        } catch(err) {}
+    }
+
+    // --- DEPARTMENTS ---
+    async function loadDepts() {
+        try {
+            globalDepts = await ApiClient.get('/admin/departments');
+            const tb = document.querySelector('#deptTable tbody'); tb.innerHTML='';
+            globalDepts.forEach(d => {
+                tb.innerHTML += `<tr>
+                    <td>${d.departmentID}</td>
+                    <td><strong>${d.departmentName}</strong><br><small style="color:#aaa;">${d.status||''}</small></td>
+                    <td>${d.location||''}</td>
+                    <td>${d.phoneNumber||''}</td>
+                    <td>
+                        <button class="btn btn-info btn-sm" onclick="openEditDept(${d.departmentID})"><i class="fas fa-edit"></i> Sửa</button>
+                        <button class="btn btn-danger btn-sm" onclick="ApiClient.delete('/admin/departments/${d.departmentID}').then(()=>{UI.toast('Đã xóa', 'success'); loadDepts();})"><i class="fas fa-trash"></i> Xóa</button>
+                    </td>
+                </tr>`;
+            });
+        } catch(e){}
+    }
+    async function createDept(e) { e.preventDefault(); try { await ApiClient.post('/admin/departments', {departmentName: document.getElementById('deptName').value, location: document.getElementById('deptLoc').value, phoneNumber: document.getElementById('deptPhone').value, description: document.getElementById('deptDesc').value, status: 'Đang hoạt động'}); UI.toast('Đã thêm', 'success'); document.getElementById('deptForm').reset(); loadDepts(); } catch(e){} }
+
+    function openEditDept(id) {
+        let d = globalDepts.find(x => x.departmentID === id);
+        if(d) {
+            document.getElementById('editDeptId').value = d.departmentID;
+            document.getElementById('editDeptName').value = d.departmentName;
+            document.getElementById('editDeptLoc').value = d.location || '';
+            document.getElementById('editDeptPhone').value = d.phoneNumber || '';
+            document.getElementById('editDeptDesc').value = d.description || '';
+            document.getElementById('editDeptStatus').value = d.status || 'Đang hoạt động';
+            openModal('editDeptModal');
+        }
+    }
+    async function submitEditDept(e) {
+        e.preventDefault();
+        try {
+            await ApiClient.put(`/admin/departments/${document.getElementById('editDeptId').value}`, { departmentName: document.getElementById('editDeptName').value, location: document.getElementById('editDeptLoc').value, phoneNumber: document.getElementById('editDeptPhone').value, description: document.getElementById('editDeptDesc').value, status: document.getElementById('editDeptStatus').value });
+            UI.toast('Cập nhật phòng ban thành công', 'success'); closeModal('editDeptModal'); loadDepts(); loadSharedData();
+        } catch(err) {}
+    }
+
+    async function loadEmps() {
+        try {
+            const emps = await ApiClient.get('/admin/employees-management');
+            const tb = document.querySelector('#empTable tbody'); tb.innerHTML='';
+            emps.forEach(e => {
+                let b = e.user.status === 'Active' ? 'badge-success' : 'badge-danger';
+                tb.innerHTML += `<tr>
+                    <td>${e.employeeID}</td><td><strong>${e.fullName}</strong><br><span class="badge ${b}">${e.user.status}</span></td>
+                    <td>${e.user.email}<br>${e.cccd}</td><td><strong>${e.position?.positionName||'-'}</strong><br><small>${e.department?.departmentName||'-'}</small></td>
+                    <td>${e.user.role.roleName}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="showEmpDetail(${e.employeeID})">Hồ sơ gốc</button>
+                        <button class="btn btn-danger btn-sm" onclick="showPayrollConfig(${e.employeeID}, '${e.fullName}')">Lương CB</button>
+                        ${e.user.status==='Active'?`<button class="btn btn-warning btn-sm" onclick="ApiClient.put('/admin/employees-management/users/${e.user.userID}/status',{status:'Khóa'}).then(()=>loadEmps())">Khóa</button>`:`<button class="btn btn-success btn-sm" onclick="ApiClient.put('/admin/employees-management/users/${e.user.userID}/status',{status:'Active'}).then(()=>loadEmps())">Mở</button>`}
+                        <button class="btn btn-secondary btn-sm" onclick="ApiClient.post('/admin/employees-management/users/${e.user.userID}/reset-password',{}).then((res)=>UI.confirm('Thành công', 'Mật khẩu mới: <b style=\\'color:red; font-size:1.2rem;\\'>' + res.defaultPassword + '</b>'))">Reset Pass</button>
+                    </td>
+                </tr>`;
+            });
+        } catch(e){}
+    }
+
+    async function createEmp(e) {
+        e.preventDefault();
+        try {
+            let cccd = document.getElementById('empCCCD').value;
+            await ApiClient.post('/admin/employees', { fullName: document.getElementById('empName').value, email: document.getElementById('empEmail').value, cccd: cccd, roleId: document.getElementById('empRole').value, departmentId: document.getElementById('empDept').value, positionId: document.getElementById('empPosSelect').value });
+            await UI.confirm("Tạo tài khoản thành công", `Mật khẩu mặc định là: <br><br><b style="font-size:1.5rem; color:var(--primary);">Hcmute@${cccd.slice(-4)}</b>`);
+            document.getElementById('empForm').reset(); loadEmps();
+        } catch(e){}
+    }
+
+    async function showEmpDetail(id) {
+        try {
+            const emp = await ApiClient.get(`/admin/employees-management/${id}`);
+            document.getElementById('detEmpId').value = emp.employeeID;
+            document.getElementById('detFullName').value = emp.fullName || '';
+            document.getElementById('detGender').value = emp.gender || 'Nam';
+            document.getElementById('detBirthDate').value = emp.dateOfBirth || '';
+            document.getElementById('detCCCD').value = emp.cccd || '';
+            document.getElementById('detPhone').value = emp.phoneNumber || '';
+            document.getElementById('detAddress').value = emp.currentAddress || '';
+            document.getElementById('detEmergencyName').value = emp.emergencyContactName || '';
+            document.getElementById('detEmergencyPhone').value = emp.emergencyContactPhone || '';
+            document.getElementById('detDept').value = emp.department ? emp.department.departmentID : '';
+            document.getElementById('detPosSelect').value = emp.position ? emp.position.positionID : '';
+            document.getElementById('detQualification').value = emp.educationLevel || '';
+            document.getElementById('detContractType').value = emp.contractType || 'Thử việc';
+            document.getElementById('detHireDate').value = emp.joinDate || '';
+            document.getElementById('detLeaveAllowance').value = emp.remainingLeaveDays || 12;
+            document.getElementById('detBankAcc').value = emp.bankAccount || '';
+            document.getElementById('detBankName').value = emp.bankName || '';
+            document.getElementById('detTaxId').value = emp.taxCode || '';
+            document.getElementById('detSocialId').value = emp.socialInsuranceNumber || '';
+            openModal('empDetailModal');
+        } catch(e){}
+    }
+
+    async function saveEmployeeDetail(e) {
+        e.preventDefault();
+        try {
+            await ApiClient.put(`/admin/employees-management/${document.getElementById('detEmpId').value}`, {
+                fullName: document.getElementById('detFullName').value, gender: document.getElementById('detGender').value, birthDate: document.getElementById('detBirthDate').value,
+                phoneNumber: document.getElementById('detPhone').value, address: document.getElementById('detAddress').value, emergencyContactName: document.getElementById('detEmergencyName').value, emergencyContactPhone: document.getElementById('detEmergencyPhone').value,
+                department: { departmentID: document.getElementById('detDept').value }, positionID: document.getElementById('detPosSelect').value,
+                qualification: document.getElementById('detQualification').value, contractType: document.getElementById('detContractType').value, hireDate: document.getElementById('detHireDate').value, leaveAllowance: document.getElementById('detLeaveAllowance').value,
+                bankAccount: document.getElementById('detBankAcc').value, bankName: document.getElementById('detBankName').value, taxID: document.getElementById('detTaxId').value, socialSecurity: document.getElementById('detSocialId').value
+            });
+            UI.toast('Lưu hồ sơ thành công', 'success'); closeModal('empDetailModal'); loadEmps();
+        } catch(e){}
+    }
+
+    // --- PAYROLL CONFIG ---
+    async function showPayrollConfig(id, name) {
+        document.getElementById('configEmpId').value = id; document.getElementById('configEmpName').innerText = name; document.getElementById('payrollConfigForm').reset();
+        try {
+            const config = await ApiClient.get(`/admin/payroll/configs/${id}`);
+            if(config) { document.getElementById('cfgBasicSalary').value=config.basicSalary; document.getElementById('cfgLunch').value=config.lunchAllowance; document.getElementById('cfgTravel').value=config.travelAllowance; document.getElementById('cfgInsRate').value=config.insuranceRate; }
+        } catch(e){} openModal('payrollConfigModal');
+    }
+    async function savePayrollConfig(e) {
+        e.preventDefault(); try { await ApiClient.post(`/admin/payroll/configs/${document.getElementById('configEmpId').value}`, { basicSalary: document.getElementById('cfgBasicSalary').value, lunchAllowance: document.getElementById('cfgLunch').value, travelAllowance: document.getElementById('cfgTravel').value, insuranceRate: document.getElementById('cfgInsRate').value }); UI.toast('Lưu cấu hình lương thành công', 'success'); closeModal('payrollConfigModal'); } catch(e){}
+    }
+
+    // --- LEAVES ---
+    async function loadLeaves() {
+        try {
+            const reqs = await ApiClient.get('/admin/leave-requests');
+            const tb = document.querySelector('#leaveTableAdmin tbody'); tb.innerHTML='';
+            reqs.forEach(r => {
+                let bdg = r.status==='Đã duyệt'?'badge-approved':(r.status==='Chờ duyệt'?'badge-pending':'badge-rejected');
+                let btns = r.status==='Chờ duyệt'?`<button class="btn btn-success btn-sm" onclick="ApiClient.put('/admin/leave-requests/${r.requestID}/approve',{}).then(()=>loadLeaves())">Duyệt</button> <button class="btn btn-danger btn-sm" onclick="ApiClient.put('/admin/leave-requests/${r.requestID}/reject',{rejectReason:'Admin từ chối'}).then(()=>loadLeaves())">Từ chối</button>`:'';
+                tb.innerHTML += `<tr><td><strong>${r.employee.fullName}</strong></td><td>${r.leaveType}</td><td>${r.startDate} đến ${r.endDate}</td><td>${r.reason}</td><td><span class="badge ${bdg}">${r.status}</span></td><td>${btns}</td></tr>`;
+            });
+        } catch(e){}
+    }
+
+    // --- PAYROLL ---
+    async function loadEmpsForPay() {
+        try { const emps = await ApiClient.get('/admin/employees-management'); const sel = document.getElementById('payEmpId'); sel.innerHTML = ''; emps.forEach(e => { if(e.user.status === 'Active') sel.innerHTML += `<option value="${e.employeeID}">${e.fullName}</option>`; }); } catch(e){}
+    }
+    async function loadAllPayslips() {
+        try {
+            let ps = await ApiClient.get('/admin/payslips');
+            ps.sort((a,b)=>{ let [mA,yA]=a.monthYear.split('/'); let [mB,yB]=b.monthYear.split('/'); return new Date(yB,mB-1) - new Date(yA,mA-1); });
+            const tb = document.querySelector('#adminPayslipTable tbody'); tb.innerHTML='';
+            ps.forEach(p => tb.innerHTML += `<tr><td><strong>${p.monthYear}</strong></td><td>${p.employee.fullName}</td><td>${p.actualWorkingDays}</td><td>${fmt(p.basicSalary)}</td><td>+ ${fmt(p.totalAllowance)}</td><td style="color:red;">- ${fmt(p.totalDeduction)}</td><td class="text-success" style="font-weight:bold;">${fmt(p.netSalary)}</td></tr>`);
+        } catch(e){}
+    }
+
+    // TÍNH LƯƠNG CÓ VALIDATION BẰNG JS
+    async function processPayroll(e) {
+        e.preventDefault();
+
+        let std = document.getElementById('payStd').value;
+        let act = document.getElementById('payAct').value;
+
+        // KIỂM TRA LOGIC JS
+        if(parseFloat(act) > parseFloat(std)) {
+            UI.toast("Lỗi: Ngày làm thực tế không được vượt quá ngày công chuẩn!", "error");
+            return;
+        }
+
+        try {
+            await ApiClient.post(`/admin/payroll/calculate/${document.getElementById('payEmpId').value}`, {monthYear: document.getElementById('payMonth').value, standardDays: std, actualWorkingDays: act});
+            UI.toast('Chốt lương cá nhân thành công','success');
+            document.getElementById('payrollForm').reset();
+            loadAllPayslips();
+        } catch(e){}
+    }
+
+    async function autoRunPayrollScript() {
+        let m = document.getElementById('payMonth').value; let d = document.getElementById('payStd').value;
+        if(!m || !d) { UI.toast("Vui lòng nhập Kỳ lương & Ngày chuẩn vào form tính cá nhân trước để làm mẫu!","error"); return; }
+        if(await UI.confirm("Auto Payroll","Chạy kịch bản chốt lương cho TOÀN BỘ công ty?")) { try { await ApiClient.post('/admin/payroll/calculate-all', {monthYear:m, standardDays:d}); UI.toast('Chạy xong kịch bản tự động!','success'); loadAllPayslips(); } catch(e){} }
+    }
+
+    // --- LOGS ---
+    async function loadLogs() {
+        try { const logs = await ApiClient.get('/admin/logs'); logs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)); const tb = document.querySelector('#logTable tbody'); tb.innerHTML=''; logs.forEach(l => tb.innerHTML += `<tr><td style="color:#888; font-size:0.85rem">${new Date(l.timestamp).toLocaleString('vi')}</td><td><strong>${l.user?l.user.email:'Hệ thống'}</strong></td><td>${l.action}</td></tr>`); } catch(e){}
+    }
+
+    window.onload = () => { loadStats(); loadSharedData(); };
+</script>
+</body>
+</html>
