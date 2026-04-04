@@ -84,6 +84,7 @@
             </div>
         </div>
 
+
         <div id="positions" class="content-section">
             <h2 style="margin-bottom: 25px;"><i class="fas fa-briefcase text-primary"></i> Quản lý Chức vụ</h2>
             <div class="card mb-4">
@@ -143,6 +144,7 @@
             </div>
         </div>
 
+
         <div id="payroll" class="content-section">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
                 <h2><i class="fas fa-file-invoice-dollar text-primary"></i> Quản lý Tiền lương</h2>
@@ -196,6 +198,7 @@
         </form>
     </div>
 </div>
+
 
 <div id="editPosModal" class="modal">
     <div class="modal-content" style="max-width: 600px;">
@@ -418,7 +421,6 @@
         } catch(err) {}
     }
 
-    // --- EMPLOYEES ---
     async function loadEmps() {
         try {
             const emps = await ApiClient.get('/admin/employees-management');
@@ -558,7 +560,7 @@
     // --- LOGS ---
     async function loadLogs() {
         try { const logs = await ApiClient.get('/admin/logs'); logs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)); const tb = document.querySelector('#logTable tbody'); tb.innerHTML=''; logs.forEach(l => tb.innerHTML += `<tr><td style="color:#888; font-size:0.85rem">${new Date(l.timestamp).toLocaleString('vi')}</td><td><strong>${l.user?l.user.email:'Hệ thống'}</strong></td><td>${l.action}</td></tr>`); } catch(e){}
-    }
+     }
 
     window.onload = () => { loadStats(); loadSharedData(); };
 </script>
