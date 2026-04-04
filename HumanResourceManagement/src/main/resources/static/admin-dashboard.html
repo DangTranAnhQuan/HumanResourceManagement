@@ -560,7 +560,7 @@
     // --- LOGS ---
     async function loadLogs() {
         try { const logs = await ApiClient.get('/admin/logs'); logs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)); const tb = document.querySelector('#logTable tbody'); tb.innerHTML=''; logs.forEach(l => tb.innerHTML += `<tr><td style="color:#888; font-size:0.85rem">${new Date(l.timestamp).toLocaleString('vi')}</td><td><strong>${l.user?l.user.email:'Hệ thống'}</strong></td><td>${l.action}</td></tr>`); } catch(e){}
-     }
+    }
 
     window.onload = () => { loadStats(); loadSharedData(); };
 </script>
